@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dad's Health Dashboard — Om Bindu Lal Rajbhandari</title>
+  <style>
+    /* PASSWORD SCREEN */
+    #lock-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0d9488 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #lock-box {
+      background: white; border-radius: 24px;
+      padding: 40px 36px; width: 100%; max-width: 380px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    #lock-box .lock-icon {
+      font-size: 48px; margin-bottom: 16px;
+      display: block;
+    }
+    #lock-box h2 {
+      font-size: 20px; font-weight: 800; color: #111827;
+      margin-bottom: 4px;
+    }
+    #lock-box .lock-sub {
+      font-size: 13px; color: #6b7280; margin-bottom: 28px;
+    }
+    #lock-input {
+      width: 100%; padding: 13px 16px;
+      border: 2px solid #e5e7eb; border-radius: 12px;
+      font-size: 16px; font-family: inherit;
+      letter-spacing: 2px; text-align: center;
+      margin-bottom: 14px; transition: border 0.2s;
+    }
+    #lock-input:focus { outline: none; border-color: #2563eb; }
+    #lock-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #2563eb, #0d9488);
+      color: white; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity 0.2s;
+    }
+    #lock-btn:hover { opacity: 0.9; }
+    #lock-error {
+      margin-top: 12px; font-size: 13px;
+      color: #dc2626; font-weight: 600;
+      display: none;
+    }
+    #lock-hint {
+      margin-top: 20px; font-size: 12px; color: #9ca3af;
+    }
+    #app { display: none; }
+
+    :root {
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --orange: #ea580c;
+      --orange-light: #ffedd5;
+      --red: #dc2626;
+      --red-light: #fee2e2;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --gray: #6b7280;
+      --gray-light: #f3f4f6;
+      --text: #111827;
+      --border: #e5e7eb;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #0d9488 100%);
+      color: white;
+      padding: 28px 24px 24px;
+      text-align: center;
+    }
+    .header .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      margin-bottom: 10px;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .header .subtitle { font-size: 14px; opacity: 0.85; }
+    .header .meta {
+      display: flex; justify-content: center; gap: 20px;
+      margin-top: 16px; flex-wrap: wrap;
+    }
+    .header .meta-item {
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .header .meta-item span { display: block; font-size: 11px; opacity: 0.75; margin-bottom: 2px; }
+
+    /* NAV TABS */
+    .tabs {
+      display: flex;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+      sticky: top;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex-shrink: 0;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: var(--gray);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .tab:hover:not(.active) { color: var(--text); background: var(--gray-light); }
+
+    /* MAIN CONTENT */
+    .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 40px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* DIAGNOSIS CARDS */
+    .diagnosis-card {
+      border-radius: 14px;
+      padding: 16px;
+      border-left: 4px solid;
+      margin-bottom: 14px;
+    }
+    .diagnosis-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .diagnosis-card .desc { font-size: 13px; line-height: 1.6; color: #374151; }
+    .diagnosis-card .badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      margin-bottom: 8px;
+    }
+
+    /* APPOINTMENT CARDS */
+    .appt-card {
+      border-radius: 14px; padding: 18px;
+      display: flex; align-items: flex-start; gap: 16px;
+      margin-bottom: 14px; border: 2px solid;
+    }
+    .appt-date-box {
+      min-width: 60px; text-align: center;
+      border-radius: 12px; padding: 10px 8px;
+    }
+    .appt-date-box .day { font-size: 26px; font-weight: 800; line-height: 1; }
+    .appt-date-box .month { font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .appt-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .appt-info p { font-size: 13px; color: #4b5563; margin-bottom: 4px; }
+    .countdown-badge {
+      display: inline-block;
+      font-size: 12px; font-weight: 700;
+      padding: 4px 12px; border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    /* MEDICINE CARDS */
+    .med-card {
+      border-radius: 14px; padding: 16px;
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 12px; border: 1.5px solid var(--border);
+    }
+    .med-icon {
+      font-size: 24px; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px; flex-shrink: 0;
+    }
+    .med-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .med-detail { font-size: 13px; color: #4b5563; margin-bottom: 2px; }
+    .med-why { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 6px; }
+    .med-ongoing { background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+    .med-completed { background: var(--gray-light); color: var(--gray); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+
+    /* CHECKLIST */
+    .check-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item input[type="checkbox"] {
+      margin-top: 2px; width: 18px; height: 18px;
+      accent-color: var(--blue); cursor: pointer; flex-shrink: 0;
+    }
+    .check-label { font-size: 14px; line-height: 1.5; cursor: pointer; }
+    .check-label.done { text-decoration: line-through; color: var(--gray); }
+
+    /* WARNING SIGNS */
+    .warning-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; border-radius: 12px; margin-bottom: 10px;
+    }
+    .warning-item .w-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .warning-item .w-text { font-size: 13px; line-height: 1.6; }
+    .warning-item .w-text strong { display: block; font-size: 14px; margin-bottom: 2px; }
+
+    /* HEALTH TIPS */
+    .tip-card {
+      border-radius: 14px; padding: 16px;
+      margin-bottom: 12px; display: flex; gap: 14px;
+    }
+    .tip-card .t-icon { font-size: 28px; flex-shrink: 0; }
+    .tip-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .tip-card p { font-size: 13px; line-height: 1.6; color: #374151; }
+
+    /* VITALS LOG */
+    .vitals-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 500px) { .vitals-form { grid-template-columns: 1fr; } }
+    .vitals-field label { display: block; font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 4px; }
+    .vitals-field input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 14px; font-family: inherit;
+      transition: border 0.2s;
+    }
+    .vitals-field input:focus { outline: none; border-color: var(--blue); }
+    .btn {
+      background: var(--blue); color: white;
+      border: none; border-radius: 12px; padding: 11px 22px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: background 0.2s;
+    }
+    .btn:hover { background: #1d4ed8; }
+    .btn-outline {
+      background: transparent; color: var(--red); border: 1.5px solid var(--red);
+      border-radius: 10px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .vitals-log { max-height: 280px; overflow-y: auto; }
+    .vitals-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
+      gap: 8px; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .vitals-row.header { font-weight: 700; font-size: 11px; color: var(--gray); text-transform: uppercase; }
+    .vitals-row .flag { font-size: 18px; }
+    .empty-log { text-align: center; color: var(--gray); padding: 30px; font-size: 14px; }
+
+    /* ALERTS */
+    .alert {
+      border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 14px; display: flex; align-items: flex-start; gap: 12px;
+      font-size: 13px; line-height: 1.6;
+    }
+    .alert-icon { font-size: 20px; flex-shrink: 0; }
+    .alert-red { background: var(--red-light); border-left: 4px solid var(--red); }
+    .alert-orange { background: var(--orange-light); border-left: 4px solid var(--orange); }
+    .alert-blue { background: var(--blue-light); border-left: 4px solid var(--blue); }
+    .alert-green { background: var(--green-light); border-left: 4px solid var(--green); }
+
+    /* SECTION HEADER */
+    .section-header { margin-bottom: 20px; }
+    .section-header h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .section-header p { font-size: 13px; color: var(--gray); }
+
+    /* PROGRESS BAR */
+    .progress-bar-wrap { background: #e5e7eb; border-radius: 10px; height: 8px; margin-top: 8px; }
+    .progress-bar { height: 8px; border-radius: 10px; transition: width 0.4s; }
+
+    /* UROLOGY QUESTIONS */
+    .uro-q { margin-bottom: 14px; }
+    .uro-q-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 6px;
+    }
+    .uro-cb {
+      margin-top: 3px; width: 17px; height: 17px;
+      accent-color: var(--blue); cursor: pointer; flex-shrink: 0;
+    }
+    .uro-label {
+      font-size: 13px; line-height: 1.6; cursor: pointer;
+      color: #1e293b;
+    }
+    .uro-label.asked {
+      text-decoration: line-through; color: #9ca3af;
+    }
+    .uro-ans {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid #e2e8f0; border-radius: 10px;
+      font-size: 12px; font-family: inherit; resize: vertical;
+      min-height: 52px; color: #374151; background: rgba(255,255,255,0.7);
+      transition: border 0.2s;
+    }
+    .uro-ans:focus { outline: none; border-color: var(--blue); background: white; }
+
+    @media print {
+      .tabs, .btn, .btn-outline, header { display: none !important; }
+      .section { display: block !important; }
+      #section-diagnoses, #section-appointments, #section-medicines,
+      #section-warnings, #section-vitals, #section-lifestyle { display: none !important; }
+      body { background: white; }
+      .card { box-shadow: none; border: 1px solid #e5e7eb; }
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center; padding: 20px;
+      font-size: 12px; color: var(--gray);
+      border-top: 1px solid var(--border); margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div id="lock-screen">
+  <div id="lock-box">
+    <span class="lock-icon">🔒</span>
+    <h2>Health Dashboard</h2>
+    <p class="lock-sub">Om Bindu Lal Rajbhandari · Private & Confidential</p>
+    <input type="password" id="lock-input" placeholder="Enter password"
+      onkeydown="if(event.key==='Enter') unlock()">
+    <button id="lock-btn" onclick="unlock()">Unlock →</button>
+    <div id="lock-error">Incorrect password. Please try again.</div>
+    <p id="lock-hint">Family access only. Contact Pranab for the password.</p>
+  </div>
+</div>
+
+<!-- MAIN APP (hidden until unlocked) -->
+<div id="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="tag">🏥 Health Dashboard</div>
+  <h1>Om Bindu Lal Rajbhandari</h1>
+  <div class="subtitle">69 Years • Male • Kathmandu, Nepal</div>
+  <div class="meta">
+    <div class="meta-item"><span>Admitted</span>Apr 19, 2026</div>
+    <div class="meta-item"><span>Discharged</span>Apr 21, 2026</div>
+    <div class="meta-item"><span>Hospital</span>B&B Hospital, Lalitpur</div>
+    <div class="meta-item"><span>Today</span><span id="todayDate">—</span></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('diagnoses', this)">🩺 Diagnoses</div>
+  <div class="tab" onclick="showTab('appointments', this)">📅 Appointments</div>
+  <div class="tab" onclick="showTab('medicines', this)">💊 Medicines</div>
+  <div class="tab" onclick="showTab('warnings', this)">⚠️ Watch Out For</div>
+  <div class="tab" onclick="showTab('vitals', this)">📊 Vitals Log</div>
+  <div class="tab" onclick="showTab('lifestyle', this)">🌿 Lifestyle</div>
+</div>
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+
+  <!-- ===================== DIAGNOSES ===================== -->
+  <div class="section active" id="section-diagnoses">
+    <div class="section-header">
+      <h2>What Was Diagnosed</h2>
+      <p>4 conditions identified during the hospital stay, plus 2 pre-existing conditions being managed.</p>
+    </div>
+
+    <div class="alert alert-green">
+      <div class="alert-icon">✅</div>
+      <div>Condition at discharge was <strong>improved</strong>. Heart was ruled out. PSA (prostate cancer marker) was normal at 0.656 ng/mL. Kidney function normal. Discharged hemodynamically stable.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#eff6ff; border-color:#2563eb;">
+      <div class="badge" style="background:#dbeafe; color:#1d4ed8;">NEW · Primary</div>
+      <h3>🫀 Acute Acalculous Cholecystitis</h3>
+      <div class="desc">Inflammation of the gallbladder <em>without</em> gallstones. The CT scan found the gallbladder wall thickened to 6.5mm (normal &lt;3mm) with a small amount of fluid around it. Caused significant abdominal pain and bloating. Treated with IV antibiotics and analgesics during the hospital stay. Requires fat-free diet going forward.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#fdf4ff; border-color:#7c3aed;">
+      <div class="badge" style="background:#ede9fe; color:#6d28d9;">NEW · Primary</div>
+      <h3>🫘 Bilateral Pyelonephritis</h3>
+      <div class="desc">Infection/inflammation of <em>both</em> kidneys. The CT scan showed "perinephric fat stranding" on both sides — a sign the tissue around the kidneys is inflamed. Urine showed pus cells (8–10), but urine culture was negative, meaning no antibiotic-resistant bacteria was found. This is a good sign. Kidney function (creatinine 0.6) remained normal throughout.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#fff7ed; border-color:#ea580c;">
+      <div class="badge" style="background:#ffedd5; color:#c2410c;">NEW · Confirmed by Cystoscopy</div>
+      <h3>🔵 Benign Enlargement of Prostate (BEP)</h3>
+      <div class="desc">The prostate is enlarged to 42.4 grams (Grade II Prostatomegaly). Cystoscopy confirmed <strong>trilobar enlargement with occlusive lobes</strong> — meaning the prostate is pressing on the urine passage from three sides. Uroflowmetry showed reduced urine flow (max 14 ml/sec, average only 6 ml/sec). Causing urgency, dribbling, incomplete emptying, and frequent nighttime urination. PSA is normal (0.656) — no cancer concern at this time. Now on two specific prostate medications.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#fefce8; border-color:#ca8a04;">
+      <div class="badge" style="background:#fef9c3; color:#a16207;">NEW · Pre-Diabetic</div>
+      <h3>🍬 Impaired Glucose Tolerance (Pre-Diabetes)</h3>
+      <div class="desc">HbA1c of 6.3% puts him in the pre-diabetic range (5.7–6.4%). Random blood sugar was 198 mg/dL — significantly above normal (max 140). This is newly identified. He is <em>not diabetic yet</em>, but action is needed now through diet and lifestyle to prevent progression. Diabetic diet advised. Follow-up F/PPBS (Fasting and Post-Prandial Blood Sugar) blood tests needed.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#f0fdf4; border-color:#16a34a;">
+      <div class="badge" style="background:#dcfce7; color:#15803d;">PRE-EXISTING · Managed</div>
+      <h3>❤️ Hypertension (High Blood Pressure)</h3>
+      <div class="desc">Known condition, already on medication (Tab Mylod LH). BP was 150/100 mmHg on admission — elevated, but managed during the stay. To be continued on current medication.</div>
+    </div>
+
+    <div class="diagnosis-card" style="background:#f0fdf4; border-color:#16a34a;">
+      <div class="badge" style="background:#dcfce7; color:#15803d;">PRE-EXISTING · Managed</div>
+      <h3>🩸 Dyslipidemia (Abnormal Cholesterol)</h3>
+      <div class="desc">Known condition, already on Tab Aztor 10mg (Atorvastatin — a statin). Needs to be continued. A fat-free diet supports this as well.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dbeafe;">🔬</div> Key Test Results Summary</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f3f4f6;">
+              <th style="padding:10px 12px; text-align:left; border-radius:8px 0 0 8px;">Test</th>
+              <th style="padding:10px 12px; text-align:left;">Result</th>
+              <th style="padding:10px 12px; text-align:left;">Normal</th>
+              <th style="padding:10px 12px; text-align:left; border-radius:0 8px 8px 0;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">HbA1c</td><td>6.3%</td><td>4.0–5.7%</td><td><span style="color:#ca8a04; font-weight:700;">⚠ Pre-Diabetic</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Random Blood Sugar</td><td>198 mg/dL</td><td>60–140</td><td><span style="color:#dc2626; font-weight:700;">↑ High</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">PSA (Prostate Cancer Marker)</td><td>0.656 ng/mL</td><td>&lt;4.0</td><td><span style="color:#16a34a; font-weight:700;">✓ Normal</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Creatinine (Kidney)</td><td>0.6 mg/dL</td><td>0.50–1.25</td><td><span style="color:#16a34a; font-weight:700;">✓ Normal</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Troponin (Heart)</td><td>&lt;0.1 ng/mL</td><td>&lt;0.3</td><td><span style="color:#16a34a; font-weight:700;">✓ Normal</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">WBC (Infection Marker)</td><td>10,200 /cumm</td><td>4,000–11,000</td><td><span style="color:#16a34a; font-weight:700;">✓ Normal</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Neutrophils</td><td>88%</td><td>40–75%</td><td><span style="color:#ea580c; font-weight:700;">↑ Elevated</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Sodium</td><td>133 mmol/L</td><td>137–145</td><td><span style="color:#ea580c; font-weight:700;">↓ Slightly Low</span></td></tr>
+            <tr style="border-bottom:1px solid #f3f4f6;"><td style="padding:9px 12px;">Urine Pus Cells</td><td>8–10 /hpf</td><td>0–5</td><td><span style="color:#ea580c; font-weight:700;">↑ Elevated</span></td></tr>
+            <tr><td style="padding:9px 12px;">Prostate Size</td><td>42.4 grams</td><td>&lt;30g normal</td><td><span style="color:#dc2626; font-weight:700;">↑ Enlarged (Grade II)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== APPOINTMENTS ===================== -->
+  <div class="section" id="section-appointments">
+    <div class="section-header">
+      <h2>Follow-Up Appointments</h2>
+      <p>Track all upcoming and completed appointments in one place.</p>
+    </div>
+
+    <div class="alert alert-orange">
+      <div class="alert-icon">📌</div>
+      <div><strong>Upcoming Urology appointment on May 4, 2026</strong> — in just 2 days. Remember to bring all discharge papers and the F/PPBS blood sugar report.</div>
+    </div>
+
+    <!-- Appointment 1 -->
+    <div class="appt-card" style="background:#f0fdf4; border-color:#16a34a;">
+      <div class="appt-date-box" style="background:#dcfce7; color:#166534;">
+        <div class="day">29</div>
+        <div class="month">Apr</div>
+      </div>
+      <div class="appt-info" style="flex:1;">
+        <h3>Surgery Department Follow-Up</h3>
+        <p>🏥 B&B Hospital — Dr. D.V. Karkee (General Surgery)</p>
+        <p>🕙 10:00 AM · Surgery OPD (SOPD) · Call reception before visiting</p>
+        <p style="font-size:12px; color:#4b5563; margin-top:4px;">For: Gallbladder (Cholecystitis) & Kidney (Pyelonephritis) follow-up</p>
+        <div class="countdown-badge" style="background:#dcfce7; color:#166534;">✓ Completed</div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px; font-weight:600; color:#4b5563;">Notes from this visit:</label>
+          <textarea id="note-appt1" placeholder="Write what the doctor said..." style="width:100%; margin-top:6px; padding:10px; border:1.5px solid #d1fae5; border-radius:10px; font-size:13px; font-family:inherit; resize:vertical; min-height:60px;" oninput="saveNote('appt1', this.value)"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment 2 -->
+    <div class="appt-card" style="background:#eff6ff; border-color:#2563eb;">
+      <div class="appt-date-box" style="background:#dbeafe; color:#1e40af;">
+        <div class="day">4</div>
+        <div class="month">May</div>
+      </div>
+      <div class="appt-info" style="flex:1;">
+        <h3>Urology Department Follow-Up ⭐</h3>
+        <p>🏥 B&B Hospital — Dr. Binod Shrestha (Urologist)</p>
+        <p>🕙 10:00 AM · Urology OPD (UOPD) · Call reception before visiting</p>
+        <p style="font-size:12px; color:#4b5563; margin-top:4px;">For: Prostate (BEP) review — Urader & Dutas medication assessment</p>
+        <div class="countdown-badge" id="countdown2" style="background:#dbeafe; color:#1e40af;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- UROLOGY QUESTIONS CARD -->
+    <div class="card" style="border: 2px solid #bfdbfe;">
+      <div class="card-title" style="margin-bottom:6px;">
+        <div class="icon" style="background:#dbeafe;">🩺</div>
+        Questions for Dr. Binod Shrestha — May 4 Urology Visit
+      </div>
+      <p style="font-size:13px; color:#4b5563; margin-bottom:16px;">Tick each question as you ask it. Write the doctor's answer in the box below each one. <strong>Bring this page printed or on your phone.</strong></p>
+
+      <div style="display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;">
+        <button onclick="printQuestions()" class="btn" style="font-size:13px;">🖨 Print Questions</button>
+        <button onclick="clearUroAnswers()" class="btn" style="background:#6b7280; font-size:13px;">↺ Clear Answers</button>
+      </div>
+
+      <!-- Category 1 -->
+      <div style="background:#eff6ff; border-radius:12px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">🔵 About the Prostate Condition</div>
+
+        <div class="uro-q" id="q1">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq1" onchange="uroCheck(this)">
+            <label for="uq1" class="uro-label">The cystoscopy showed <strong>trilobar enlargement with occlusive lobes</strong> — how serious is this, and what does it mean for long-term treatment?</label>
+          </div>
+          <textarea class="uro-ans" id="ua1" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua1', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q2">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq2" onchange="uroCheck(this)">
+            <label for="uq2" class="uro-label">The uroflowmetry showed max flow of only <strong>14 ml/sec</strong> and average flow of <strong>6 ml/sec</strong>. What is the target we're aiming for with medication?</label>
+          </div>
+          <textarea class="uro-ans" id="ua2" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua2', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q3">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq3" onchange="uroCheck(this)">
+            <label for="uq3" class="uro-label">When should we <strong>repeat the uroflowmetry</strong> to check if the medications are improving the flow rate?</label>
+          </div>
+          <textarea class="uro-ans" id="ua3" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua3', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q4">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq4" onchange="uroCheck(this)">
+            <label for="uq4" class="uro-label">Is surgery like <strong>TURP (Transurethral Resection of the Prostate)</strong> being considered, or are we focusing on medication for now? What would make surgery necessary?</label>
+          </div>
+          <textarea class="uro-ans" id="ua4" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua4', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q5">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq5" onchange="uroCheck(this)">
+            <label for="uq5" class="uro-label">The cystoscopy also showed <strong>mild bladder trabeculations</strong> — is this something that will resolve on its own, or does it need monitoring?</label>
+          </div>
+          <textarea class="uro-ans" id="ua5" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua5', this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- Category 2 -->
+      <div style="background:#f0fdf4; border-radius:12px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:800; color:#166534; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">💊 About the Medications</div>
+
+        <div class="uro-q" id="q6">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq6" onchange="uroCheck(this)">
+            <label for="uq6" class="uro-label">He has developed <strong>nasal congestion</strong> since starting Urader — is this a known side effect? Can we switch to a different alpha-blocker (e.g. Tamsulosin or Silodosin) with fewer nasal side effects?</label>
+          </div>
+          <textarea class="uro-ans" id="ua6" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua6', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q7">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq7" onchange="uroCheck(this)">
+            <label for="uq7" class="uro-label">Can Urader cause <strong>dizziness when standing up</strong> (postural hypotension)? He is also on blood pressure medication — is there a risk of interaction?</label>
+          </div>
+          <textarea class="uro-ans" id="ua7" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua7', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q8">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq8" onchange="uroCheck(this)">
+            <label for="uq8" class="uro-label">How long will he need to stay on <strong>both Urader and Dutas</strong>? Is this lifelong, or can one of them be stopped eventually?</label>
+          </div>
+          <textarea class="uro-ans" id="ua8" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua8', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q9">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq9" onchange="uroCheck(this)">
+            <label for="uq9" class="uro-label">Dutas (Dutasteride) is said to take <strong>3–6 months to shrink the prostate</strong>. What improvements should we realistically expect in the next 2–3 months?</label>
+          </div>
+          <textarea class="uro-ans" id="ua9" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua9', this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- Category 3 -->
+      <div style="background:#fff7ed; border-radius:12px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:800; color:#c2410c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">😣 About Current Symptoms</div>
+
+        <div class="uro-q" id="q10">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq10" onchange="uroCheck(this)">
+            <label for="uq10" class="uro-label">He is having <strong>difficulty sleeping</strong> — how much of this is from nighttime urination (nocturia from prostate) vs the nasal congestion from Urader? What can we do to improve sleep quality now?</label>
+          </div>
+          <textarea class="uro-ans" id="ua10" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua10', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q11">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq11" onchange="uroCheck(this)">
+            <label for="uq11" class="uro-label">He still experiences <strong>dribbling and feeling of incomplete bladder emptying</strong> after urination. Is this expected to improve with the current medications? How long before we see change?</label>
+          </div>
+          <textarea class="uro-ans" id="ua11" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua11', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q12">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq12" onchange="uroCheck(this)">
+            <label for="uq12" class="uro-label">He originally had <strong>night sweats</strong> when he was admitted — is this symptom connected to the prostate or urinary infection, or should it be investigated separately?</label>
+          </div>
+          <textarea class="uro-ans" id="ua12" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua12', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q13">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq13" onchange="uroCheck(this)">
+            <label for="uq13" class="uro-label">What are the <strong>warning signs</strong> that would mean he needs to come back to emergency immediately (e.g. signs of complete urinary retention)?</label>
+          </div>
+          <textarea class="uro-ans" id="ua13" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua13', this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- Category 4 -->
+      <div style="background:#fdf4ff; border-radius:12px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:800; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">🔬 About the Urinary Infection & PSA</div>
+
+        <div class="uro-q" id="q14">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq14" onchange="uroCheck(this)">
+            <label for="uq14" class="uro-label">The urine routine showed <strong>pus cells 8–10</strong> during admission, but the urine culture was negative. Should we do a fresh urine routine exam now to confirm the infection has fully cleared?</label>
+          </div>
+          <textarea class="uro-ans" id="ua14" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua14', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q15">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq15" onchange="uroCheck(this)">
+            <label for="uq15" class="uro-label">His <strong>PSA was 0.656 ng/mL</strong> (well within normal). How often should PSA be monitored going forward given he has prostate enlargement?</label>
+          </div>
+          <textarea class="uro-ans" id="ua15" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua15', this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- Category 5 -->
+      <div style="background:#f0f4f8; border-radius:12px; padding:14px;">
+        <div style="font-size:12px; font-weight:800; color:#374151; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">🌿 Diet, Lifestyle & Next Steps</div>
+
+        <div class="uro-q" id="q16">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq16" onchange="uroCheck(this)">
+            <label for="uq16" class="uro-label">Are there any <strong>specific foods or drinks to avoid</strong> for prostate health (e.g. spicy food, alcohol, caffeine, red meat)?</label>
+          </div>
+          <textarea class="uro-ans" id="ua16" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua16', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q17">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq17" onchange="uroCheck(this)">
+            <label for="uq17" class="uro-label">Are there any <strong>exercises or activities he should avoid</strong> during this recovery period (cycling, heavy lifting, etc.)?</label>
+          </div>
+          <textarea class="uro-ans" id="ua17" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua17', this.value)"></textarea>
+        </div>
+
+        <div class="uro-q" id="q18">
+          <div class="uro-q-row">
+            <input type="checkbox" class="uro-cb" id="uq18" onchange="uroCheck(this)">
+            <label for="uq18" class="uro-label">When is the <strong>next urology appointment</strong> after today, and what tests should we bring to that visit?</label>
+          </div>
+          <textarea class="uro-ans" id="ua18" placeholder="Doctor's answer…" oninput="saveUroAnswer('ua18', this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- Progress indicator -->
+      <div style="margin-top:16px; padding:14px; background:#f8fafc; border-radius:12px; text-align:center;">
+        <div style="font-size:13px; font-weight:600; color:#374151; margin-bottom:8px;">Questions Asked: <span id="uro-progress">0 / 18</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="uro-progress-bar" style="width:0%; background:#2563eb;"></div></div>
+      </div>
+    </div>
+
+    <!-- Appointment 3 -->
+    <div class="appt-card" style="background:#fdf4ff; border-color:#7c3aed;">
+      <div class="appt-date-box" style="background:#ede9fe; color:#5b21b6;">
+        <div class="day">~</div>
+        <div class="month">Jun</div>
+      </div>
+      <div class="appt-info" style="flex:1;">
+        <h3>Tumor Marker Tests + Colonoscopy</h3>
+        <p>🏥 B&B Hospital — As advised by Surgery team</p>
+        <p>📅 Recommended 4–6 weeks after discharge (June 2–16, 2026)</p>
+        <p style="font-size:12px; color:#4b5563; margin-top:4px;">Routine screening recommended. To be scheduled via Surgery OPD.</p>
+        <div class="countdown-badge" style="background:#ede9fe; color:#5b21b6;">🗓 Plan & Schedule</div>
+      </div>
+    </div>
+
+    <!-- Appointment 4 -->
+    <div class="appt-card" style="background:#fefce8; border-color:#ca8a04;">
+      <div class="appt-date-box" style="background:#fef9c3; color:#92400e;">
+        <div class="day">TBD</div>
+        <div class="month"></div>
+      </div>
+      <div class="appt-info" style="flex:1;">
+        <h3>Medicine Department Follow-Up (Blood Sugar)</h3>
+        <p>🏥 B&B Hospital — Medicine OPD (Unit III)</p>
+        <p>📅 During surgery follow-up visit · Bring F/PPBS blood test reports</p>
+        <p style="font-size:12px; color:#4b5563; margin-top:4px;">For: Pre-diabetes monitoring — HbA1c, Fasting & Post-Meal Blood Sugar</p>
+        <div class="countdown-badge" style="background:#fef9c3; color:#92400e;">📋 Pending</div>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dcfce7;">✅</div> Pre-Appointment Checklist</div>
+      <div id="checklist">
+        <div class="check-item"><input type="checkbox" id="c1" onchange="checkDone(this)"><label class="check-label" for="c1">Bring all discharge summary papers from B&B Hospital</label></div>
+        <div class="check-item"><input type="checkbox" id="c2" onchange="checkDone(this)"><label class="check-label" for="c2">Get Fasting blood sugar (FBS) and Post-Prandial blood sugar (PPBS) tests done before Medicine OPD</label></div>
+        <div class="check-item"><input type="checkbox" id="c3" onchange="checkDone(this)"><label class="check-label" for="c3">Continue Urader 8mg and Dutas 0.5mg every night without stopping</label></div>
+        <div class="check-item"><input type="checkbox" id="c4" onchange="checkDone(this)"><label class="check-label" for="c4">Maintain fat-free and diabetic diet</label></div>
+        <div class="check-item"><input type="checkbox" id="c5" onchange="checkDone(this)"><label class="check-label" for="c5">Track any new symptoms to report to doctor</label></div>
+        <div class="check-item"><input type="checkbox" id="c6" onchange="checkDone(this)"><label class="check-label" for="c6">Schedule Tumor Marker + Colonoscopy (June 2026)</label></div>
+        <div class="check-item"><input type="checkbox" id="c7" onchange="checkDone(this)"><label class="check-label" for="c7">Confirm appointment via phone before visiting hospital</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MEDICINES ===================== -->
+  <div class="section" id="section-medicines">
+    <div class="section-header">
+      <h2>Medicines Prescribed</h2>
+      <p>Two groups: ongoing (must continue) and short course (already completed).</p>
+    </div>
+
+    <div class="alert alert-red">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>Never stop Urader or Dutas without doctor's advice.</strong> Stopping suddenly can cause urinary retention. Always complete the prescribed course of any antibiotic.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dcfce7;">🔄</div> Ongoing Medications — Do Not Stop</div>
+
+      <div class="med-card" style="background:#f0fdf4;">
+        <div class="med-icon" style="background:#dcfce7;">🟢</div>
+        <div style="flex:1;">
+          <div class="med-name">Urader 8mg (Tamsulosin/Silodosin)</div>
+          <div class="med-detail">💊 1 capsule · Every night at bedtime (HS) · Continue indefinitely</div>
+          <div class="med-why">For: Prostate (BEP) — Relaxes the muscles of the prostate and bladder neck, making urination easier</div>
+          <div style="margin-top:6px;"><span class="med-ongoing">● ONGOING</span></div>
+          <div style="margin-top:8px; font-size:12px; color:#6b7280;">⚠ Common side effect: Nasal congestion — very likely the cause of the stuffy nose Dad is experiencing. Mention this to Dr. Binod on May 4.</div>
+        </div>
+      </div>
+
+      <div class="med-card" style="background:#f0fdf4;">
+        <div class="med-icon" style="background:#dcfce7;">🟢</div>
+        <div style="flex:1;">
+          <div class="med-name">Dutas 0.5mg (Dutasteride)</div>
+          <div class="med-detail">💊 1 tablet · Every night at bedtime (HS) · Continue indefinitely</div>
+          <div class="med-why">For: Prostate (BEP) — Shrinks the prostate over time by blocking the hormone that causes it to grow. Takes 3–6 months to show full effect.</div>
+          <div style="margin-top:6px;"><span class="med-ongoing">● ONGOING</span></div>
+        </div>
+      </div>
+
+      <div class="med-card" style="background:#f0fdf4;">
+        <div class="med-icon" style="background:#dcfce7;">🟢</div>
+        <div style="flex:1;">
+          <div class="med-name">Tab Mylod LH</div>
+          <div class="med-detail">💊 1 tablet · Every morning (OD/AM) · Continue</div>
+          <div class="med-why">For: Blood pressure / metabolic support</div>
+          <div style="margin-top:6px;"><span class="med-ongoing">● ONGOING</span></div>
+        </div>
+      </div>
+
+      <div class="med-card" style="background:#f0fdf4;">
+        <div class="med-icon" style="background:#dcfce7;">🟢</div>
+        <div style="flex:1;">
+          <div class="med-name">Tab Aztor 10mg (Atorvastatin)</div>
+          <div class="med-detail">💊 1 tablet · Every night at bedtime (HS) · Continue</div>
+          <div class="med-why">For: Dyslipidemia (Cholesterol) — Lowers LDL "bad" cholesterol, protects heart and blood vessels</div>
+          <div style="margin-top:6px;"><span class="med-ongoing">● ONGOING</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#f3f4f6;">✔</div> Short Course — Already Completed</div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#f3f4f6;">💊</div>
+        <div>
+          <div class="med-name">Cefixime 200mg</div>
+          <div class="med-detail">Twice daily · 3 days · April 21–24, 2026</div>
+          <div class="med-why">Antibiotic for gallbladder and kidney infection</div>
+          <div style="margin-top:6px;"><span class="med-completed">✓ COMPLETED</span></div>
+        </div>
+      </div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#f3f4f6;">💊</div>
+        <div>
+          <div class="med-name">Metronidazole (Metron) 400mg</div>
+          <div class="med-detail">Twice daily · 3 days · April 21–24, 2026</div>
+          <div class="med-why">Antibiotic (anaerobic bacteria coverage)</div>
+          <div style="margin-top:6px;"><span class="med-completed">✓ COMPLETED</span></div>
+        </div>
+      </div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#f3f4f6;">💊</div>
+        <div>
+          <div class="med-name">Pantoprazole (Pantop) 40mg</div>
+          <div class="med-detail">Twice daily · 3 days</div>
+          <div class="med-why">Stomach protection (acid suppressor)</div>
+          <div style="margin-top:6px;"><span class="med-completed">✓ COMPLETED</span></div>
+        </div>
+      </div>
+
+      <div class="med-card">
+        <div class="med-icon" style="background:#f3f4f6;">🍶</div>
+        <div>
+          <div class="med-name">Lactulose Syrup 15ml</div>
+          <div class="med-detail">At night · 1 week (hold if >3 bowel movements/day)</div>
+          <div class="med-why">For bowel regularity after the hospital episode</div>
+          <div style="margin-top:6px;"><span class="med-completed">✓ COMPLETED</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#fef9c3;">🕐</div> Daily Medication Schedule</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="background:#fef9c3; border-radius:12px; padding:14px;">
+          <div style="font-weight:700; font-size:13px; margin-bottom:8px;">🌅 Morning</div>
+          <div style="font-size:13px; color:#374151;">• Tab Mylod LH — 1 tablet with water</div>
+        </div>
+        <div style="background:#e0f2fe; border-radius:12px; padding:14px;">
+          <div style="font-weight:700; font-size:13px; margin-bottom:8px;">🌙 Bedtime (Night)</div>
+          <div style="font-size:13px; color:#374151; line-height:2;">
+            • Cap Urader 8mg<br>
+            • Tab Dutas 0.5mg<br>
+            • Tab Aztor 10mg
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== WARNINGS ===================== -->
+  <div class="section" id="section-warnings">
+    <div class="section-header">
+      <h2>Warning Signs to Watch Out For</h2>
+      <p>Go to emergency immediately for RED signs. Call the doctor for ORANGE signs.</p>
+    </div>
+
+    <div class="alert alert-red" style="margin-bottom:20px;">
+      <div class="alert-icon">🚨</div>
+      <div><strong>Emergency contact: B&B Hospital — +977-1-5970999</strong><br>For any severe or sudden symptoms, go to Emergency immediately. Don't wait.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#fee2e2;">🚨</div> GO TO EMERGENCY IMMEDIATELY</div>
+      <div class="warning-item" style="background:#fee2e2;">
+        <div class="w-icon">🔥</div>
+        <div class="w-text"><strong>High Fever with Chills and Rigor</strong>Fever above 38.5°C with uncontrollable shaking is a sign of serious infection (sepsis). This is a medical emergency.</div>
+      </div>
+      <div class="warning-item" style="background:#fee2e2;">
+        <div class="w-icon">💛</div>
+        <div class="w-text"><strong>Jaundice (Yellowing of Skin or Eyes)</strong>Yellowing could mean the gallbladder infection has spread to the bile duct or liver. Requires urgent evaluation.</div>
+      </div>
+      <div class="warning-item" style="background:#fee2e2;">
+        <div class="w-icon">🩸</div>
+        <div class="w-text"><strong>Blood in Urine (Gross Hematuria)</strong>Bright red or dark cola-colored urine needs immediate attention. Could indicate kidney or bladder bleeding.</div>
+      </div>
+      <div class="warning-item" style="background:#fee2e2;">
+        <div class="w-icon">❌</div>
+        <div class="w-text"><strong>Complete Inability to Urinate (Urinary Retention)</strong>If he cannot pass any urine for several hours and has pain/pressure, go to the urology emergency immediately. This is a known risk with prostate enlargement.</div>
+      </div>
+      <div class="warning-item" style="background:#fee2e2;">
+        <div class="w-icon">😣</div>
+        <div class="w-text"><strong>Severe Sudden Abdominal Pain</strong>If abdominal pain becomes severe, acute, and generalised — especially if it returns worse than before — this could indicate gallbladder rupture or complication.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#ffedd5;">⚠️</div> CALL DOCTOR OR VISIT OPD SOON</div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">🤢</div>
+        <div class="w-text"><strong>Nausea, Vomiting, or Return of Abdominal Pain</strong>Could mean the gallbladder inflammation is not fully resolved. Doctor should be informed within 24 hours.</div>
+      </div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">💧</div>
+        <div class="w-text"><strong>Worsening Urinary Symptoms</strong>Increased frequency, more dribbling, burning urination, or feeling of very incomplete bladder emptying — especially at night. The prostate medications may need adjusting.</div>
+      </div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">😴</div>
+        <div class="w-text"><strong>Excessive Thirst, Frequent Urination, or Fatigue</strong>These could be signs blood sugar is rising toward diabetic levels. Monitor blood sugar and inform the medicine department.</div>
+      </div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">💢</div>
+        <div class="w-text"><strong>Dizziness or Lightheadedness on Standing</strong>Urader (alpha blocker for prostate) can sometimes lower blood pressure, especially when standing up quickly. Rise slowly and hold onto something.</div>
+      </div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">🏋️</div>
+        <div class="w-text"><strong>Leg Swelling or Shortness of Breath</strong>Could indicate blood pressure is not being controlled well. Report to medicine OPD.</div>
+      </div>
+      <div class="warning-item" style="background:#fff7ed;">
+        <div class="w-icon">🌡️</div>
+        <div class="w-text"><strong>Low-Grade Fever Persisting Beyond 2–3 Days</strong>Suggests infection may not be fully cleared. A blood test and urine culture should be done.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#fef9c3;">📋</div> Specific to Current Symptoms</div>
+      <div class="warning-item" style="background:#fefce8;">
+        <div class="w-icon">👃</div>
+        <div class="w-text"><strong>Nasal Congestion</strong>Very likely a side effect of <strong>Urader (alpha-blocker)</strong> — this is one of the most commonly reported side effects of this medication class. <em>Mention it to Dr. Binod Shrestha on May 4th</em> — he may adjust the dose or switch to a different alpha-blocker with fewer nasal side effects.</div>
+      </div>
+      <div class="warning-item" style="background:#fefce8;">
+        <div class="w-icon">😴</div>
+        <div class="w-text"><strong>Difficulty Sleeping</strong>Likely linked to nasal congestion (making breathing uncomfortable) + nocturia (waking at night to urinate, which is a prostate symptom). As the prostate medications start working over 4–6 weeks, nighttime urination should reduce. Sleeping slightly propped up may help with nasal congestion in the meantime.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VITALS LOG ===================== -->
+  <div class="section" id="section-vitals">
+    <div class="section-header">
+      <h2>Vitals Log</h2>
+      <p>Track blood pressure, blood sugar, and weight daily. Bring this log to every doctor's appointment.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dbeafe;">➕</div> Add Today's Reading</div>
+      <div class="vitals-form">
+        <div class="vitals-field">
+          <label>Date</label>
+          <input type="date" id="v-date">
+        </div>
+        <div class="vitals-field">
+          <label>Blood Pressure (mmHg)</label>
+          <input type="text" id="v-bp" placeholder="e.g. 130/85">
+        </div>
+        <div class="vitals-field">
+          <label>Fasting Blood Sugar (mg/dL)</label>
+          <input type="number" id="v-fbs" placeholder="e.g. 110">
+        </div>
+        <div class="vitals-field">
+          <label>Post-Meal Sugar (mg/dL)</label>
+          <input type="number" id="v-ppbs" placeholder="e.g. 145">
+        </div>
+        <div class="vitals-field">
+          <label>Weight (kg)</label>
+          <input type="number" id="v-weight" placeholder="e.g. 72">
+        </div>
+        <div class="vitals-field">
+          <label>Notes</label>
+          <input type="text" id="v-notes" placeholder="Any symptoms today?">
+        </div>
+      </div>
+      <button class="btn" onclick="addVital()">+ Add Reading</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dcfce7;">📊</div> Readings History</div>
+      <div class="vitals-log" id="vitals-log">
+        <div class="vitals-row header">
+          <span>Date</span><span>BP</span><span>FBS</span><span>PPBS</span><span>Weight</span><span>Notes</span>
+        </div>
+        <div class="empty-log" id="empty-log">No readings yet. Add your first reading above.</div>
+      </div>
+    </div>
+
+    <div class="card" style="background:#f0fdf4;">
+      <div class="card-title"><div class="icon" style="background:#dcfce7;">📏</div> Target Ranges (Aim For These)</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="background:white; border-radius:12px; padding:14px;">
+          <div style="font-size:12px; font-weight:700; color:#6b7280; margin-bottom:6px;">BLOOD PRESSURE</div>
+          <div style="font-size:20px; font-weight:800; color:#16a34a;">120–130 / 80</div>
+          <div style="font-size:12px; color:#6b7280;">mmHg · Optimal for hypertension patients</div>
+        </div>
+        <div style="background:white; border-radius:12px; padding:14px;">
+          <div style="font-size:12px; font-weight:700; color:#6b7280; margin-bottom:6px;">FASTING BLOOD SUGAR</div>
+          <div style="font-size:20px; font-weight:800; color:#16a34a;">&lt; 100</div>
+          <div style="font-size:12px; color:#6b7280;">mg/dL · Target for pre-diabetics</div>
+        </div>
+        <div style="background:white; border-radius:12px; padding:14px;">
+          <div style="font-size:12px; font-weight:700; color:#6b7280; margin-bottom:6px;">POST-MEAL SUGAR (2hr)</div>
+          <div style="font-size:20px; font-weight:800; color:#16a34a;">&lt; 140</div>
+          <div style="font-size:12px; color:#6b7280;">mg/dL · 2 hours after eating</div>
+        </div>
+        <div style="background:white; border-radius:12px; padding:14px;">
+          <div style="font-size:12px; font-weight:700; color:#6b7280; margin-bottom:6px;">HbA1c TARGET</div>
+          <div style="font-size:20px; font-weight:800; color:#ca8a04;">&lt; 5.7%</div>
+          <div style="font-size:12px; color:#6b7280;">Current: 6.3% (Pre-diabetic) — Check in 3 months</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== LIFESTYLE ===================== -->
+  <div class="section" id="section-lifestyle">
+    <div class="section-header">
+      <h2>Take Control of Health 🌿</h2>
+      <p>Lifestyle changes that can genuinely improve all four of Dad's conditions.</p>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-icon">💡</div>
+      <div>The good news: with the right diet, activity, and habits, it's possible to reverse pre-diabetes, reduce prostate symptoms, and significantly lower blood pressure — all without additional medications.</div>
+    </div>
+
+    <div class="tip-card" style="background:#fff7ed;">
+      <div class="t-icon">🥗</div>
+      <div>
+        <h4>Diet — Fat-Free + Diabetic Diet</h4>
+        <p><strong>Gallbladder:</strong> Strictly avoid oily, fried, and fatty foods (ghee, dalda, mutton fat, cream). Even a single fatty meal can trigger gallbladder inflammation again.<br><br>
+        <strong>Blood Sugar:</strong> Eat smaller portions 4–5 times a day rather than 3 large meals. Reduce white rice, white bread, sweets, and sugary drinks. Add more vegetables, lentils, and whole grains. Avoid mango, banana, grapes in large amounts.<br><br>
+        <strong>Prostate & Kidneys:</strong> Drink 8–10 glasses of water during the day (but reduce after 7 PM to minimize nighttime urination). Reduce caffeine and alcohol completely.</p>
+      </div>
+    </div>
+
+    <div class="tip-card" style="background:#f0fdf4;">
+      <div class="t-icon">🚶</div>
+      <div>
+        <h4>Gentle Daily Movement</h4>
+        <p>A 20–30 minute morning walk daily is the single most effective thing for blood pressure, blood sugar, and cholesterol together. Start with 10 minutes if needed and build up. Avoid strenuous heavy lifting or straining while the gallbladder and kidneys are still healing. No bed rest — gentle movement is encouraged.</p>
+      </div>
+    </div>
+
+    <div class="tip-card" style="background:#eff6ff;">
+      <div class="t-icon">🌙</div>
+      <div>
+        <h4>Better Sleep (Especially with Prostate Issues)</h4>
+        <p>Nighttime urination is a prostate symptom and will improve as Dutas shrinks the prostate over weeks. In the meantime: reduce fluids after 7 PM, avoid caffeine after noon, sleep with head slightly elevated to help nasal congestion. A saline nasal rinse (like Nasoclear or Jal Neti) can help the nasal congestion from Urader.</p>
+      </div>
+    </div>
+
+    <div class="tip-card" style="background:#fdf4ff;">
+      <div class="t-icon">🧂</div>
+      <div>
+        <h4>Reduce Salt and Sodium</h4>
+        <p>His sodium level was slightly low (133, normal 137–145) and blood pressure was elevated. Avoiding excess salt (especially pickles, processed foods, packaged noodles) helps control blood pressure. A low-sodium diet of under 5g of salt per day is recommended for hypertension.</p>
+      </div>
+    </div>
+
+    <div class="tip-card" style="background:#fefce8;">
+      <div class="t-icon">📵</div>
+      <div>
+        <h4>Avoid These Completely</h4>
+        <p>• <strong>Alcohol</strong> — Damages the liver, raises blood sugar, worsens gallbladder inflammation<br>
+        • <strong>Smoking</strong> — Worsens all cardiovascular and kidney conditions<br>
+        • <strong>Fatty/Oily foods</strong> — Triggers gallbladder flare-ups<br>
+        • <strong>High sugar foods</strong> — Pushes pre-diabetes toward full diabetes<br>
+        • <strong>Dehydration</strong> — Increases kidney stone and infection risk</p>
+      </div>
+    </div>
+
+    <div class="tip-card" style="background:#f0fdf4;">
+      <div class="t-icon">😌</div>
+      <div>
+        <h4>Stress Management</h4>
+        <p>Chronic stress raises blood pressure and blood sugar. Light meditation, breathing exercises (Pranayam for 10 minutes daily), listening to music, or spending time with family all help. The recovery period is a good time to allow rest and avoid unnecessary mental strain.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:#dbeafe;">🎯</div> 3-Month Goals</div>
+      <div style="font-size:13px; color:#374151; line-height:1.8;">
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px;">🩸 Blood Sugar (Pre-Diabetes → Normal)</div>
+          <div>Target: HbA1c below 5.7% in next test (currently 6.3%). Achievable with diet + daily walking.</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" style="width:63%; background:#ca8a04;"></div></div>
+          <div style="font-size:11px; color:#6b7280; margin-top:3px;">HbA1c 6.3% — Pre-Diabetic Range</div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px;">❤️ Blood Pressure (Controlled)</div>
+          <div>Target: Consistent BP below 130/80. Currently on medication — keep monitoring and log daily.</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" style="width:75%; background:#2563eb;"></div></div>
+          <div style="font-size:11px; color:#6b7280; margin-top:3px;">Being managed — continue medication</div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px;">🔵 Prostate (Symptoms Improving)</div>
+          <div>Target: Better urine flow, fewer nighttime trips. Dutas takes 3–6 months to shrink prostate. Patience needed.</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" style="width:20%; background:#ea580c;"></div></div>
+          <div style="font-size:11px; color:#6b7280; margin-top:3px;">Just started treatment — improvement expected by July</div>
+        </div>
+        <div>
+          <div style="font-weight:700; margin-bottom:4px;">🫀 Gallbladder (Recovery)</div>
+          <div>Target: No recurrence of pain, fat-free diet maintained. Colonoscopy and tumor markers completed by June.</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" style="width:50%; background:#16a34a;"></div></div>
+          <div style="font-size:11px; color:#6b7280; margin-top:3px;">Good recovery — screening tests pending</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end container -->
+
+<div class="footer">
+  Created for Om Bindu Lal Rajbhandari · B&B Hospital discharge April 21, 2026 · Always consult your doctor for medical decisions.
+</div>
+
+</div><!-- end #app -->
+
+<script>
+  // ---- PASSWORD ----
+  function unlock() {
+    var val = document.getElementById('lock-input').value;
+    if (val === 'HealthReport') {
+      document.getElementById('lock-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      try { sessionStorage.setItem('unlocked', '1'); } catch(e) {}
+      initApp();
+    } else {
+      var err = document.getElementById('lock-error');
+      err.style.display = 'block';
+      document.getElementById('lock-input').value = '';
+      document.getElementById('lock-input').focus();
+      setTimeout(function() { err.style.display = 'none'; }, 3000);
+    }
+  }
+
+  // ---- TABS ----
+  function showTab(name, el) {
+    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    var section = document.getElementById('section-' + name);
+    if (section) section.classList.add('active');
+    if (el) el.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ---- CHECKLIST ----
+  function checkDone(cb) {
+    var lbl = cb.nextElementSibling;
+    if (lbl) lbl.classList.toggle('done', cb.checked);
+    saveChecks();
+  }
+  function saveChecks() {
+    var state = {};
+    document.querySelectorAll('#checklist input[type=checkbox]').forEach(function(cb) { state[cb.id] = cb.checked; });
+    try { localStorage.setItem('dadChecks', JSON.stringify(state)); } catch(e) {}
+  }
+  function loadChecks() {
+    try {
+      var state = JSON.parse(localStorage.getItem('dadChecks') || '{}');
+      Object.keys(state).forEach(function(id) {
+        var cb = document.getElementById(id);
+        if (cb && state[id]) { cb.checked = true; if (cb.nextElementSibling) cb.nextElementSibling.classList.add('done'); }
+      });
+    } catch(e) {}
+  }
+
+  // ---- APPOINTMENT NOTES ----
+  function saveNote(id, val) {
+    try { localStorage.setItem('note-' + id, val); } catch(e) {}
+  }
+  function loadNotes() {
+    try {
+      var v = localStorage.getItem('note-appt1');
+      var el = document.getElementById('note-appt1');
+      if (v && el) el.value = v;
+    } catch(e) {}
+  }
+
+  // ---- VITALS LOG ----
+  var vitals = [];
+  function loadVitals() {
+    try { vitals = JSON.parse(localStorage.getItem('dadVitals') || '[]'); } catch(e) { vitals = []; }
+    renderVitals();
+  }
+  function saveVitals() {
+    try { localStorage.setItem('dadVitals', JSON.stringify(vitals)); } catch(e) {}
+  }
+  function flagBP(bp) {
+    var parts = bp.split('/');
+    if (parts.length < 2) return '';
+    var sys = parseInt(parts[0]), dia = parseInt(parts[1]);
+    if (sys >= 160 || dia >= 100) return '🔴';
+    if (sys >= 130 || dia >= 85) return '🟡';
+    return '🟢';
+  }
+  function flagSugar(val, type) {
+    var v = parseInt(val);
+    if (!v) return '';
+    if (type === 'fbs') return v < 100 ? '🟢' : v < 126 ? '🟡' : '🔴';
+    if (type === 'ppbs') return v < 140 ? '🟢' : v < 200 ? '🟡' : '🔴';
+    return '';
+  }
+  function addVital() {
+    var date = document.getElementById('v-date').value;
+    var bp = document.getElementById('v-bp').value.trim();
+    var fbs = document.getElementById('v-fbs').value;
+    var ppbs = document.getElementById('v-ppbs').value;
+    var weight = document.getElementById('v-weight').value;
+    var notes = document.getElementById('v-notes').value.trim();
+    if (!date) { alert('Please select a date.'); return; }
+    vitals.unshift({ date: date, bp: bp, fbs: fbs, ppbs: ppbs, weight: weight, notes: notes });
+    saveVitals();
+    renderVitals();
+    document.getElementById('v-bp').value = '';
+    document.getElementById('v-fbs').value = '';
+    document.getElementById('v-ppbs').value = '';
+    document.getElementById('v-weight').value = '';
+    document.getElementById('v-notes').value = '';
+  }
+  function deleteVital(i) {
+    vitals.splice(i, 1);
+    saveVitals();
+    renderVitals();
+  }
+  function renderVitals() {
+    var log = document.getElementById('vitals-log');
+    var empty = document.getElementById('empty-log');
+    if (!log) return;
+    log.querySelectorAll('.vitals-row:not(.header)').forEach(function(r) { r.remove(); });
+    var noteRows = log.querySelectorAll('.note-row');
+    noteRows.forEach(function(r) { r.remove(); });
+    if (vitals.length === 0) { if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+    vitals.forEach(function(v, i) {
+      var row = document.createElement('div');
+      row.className = 'vitals-row';
+      var d = v.date ? new Date(v.date + 'T00:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short'}) : '—';
+      var bpFlag = v.bp ? flagBP(v.bp) : '';
+      var fbsFlag = v.fbs ? flagSugar(v.fbs, 'fbs') : '';
+      var ppbsFlag = v.ppbs ? flagSugar(v.ppbs, 'ppbs') : '';
+      row.innerHTML =
+        '<span>' + d + '</span>' +
+        '<span>' + bpFlag + ' ' + (v.bp || '—') + '</span>' +
+        '<span>' + fbsFlag + ' ' + (v.fbs || '—') + '</span>' +
+        '<span>' + ppbsFlag + ' ' + (v.ppbs || '—') + '</span>' +
+        '<span>' + (v.weight ? v.weight + ' kg' : '—') + '</span>' +
+        '<button class="btn-outline" onclick="deleteVital(' + i + ')" title="Delete">✕</button>';
+      log.appendChild(row);
+      if (v.notes) {
+        var noteRow = document.createElement('div');
+        noteRow.className = 'note-row';
+        noteRow.style.cssText = 'font-size:11px; color:#6b7280; padding: 0 0 8px 12px; grid-column: span 6;';
+        noteRow.textContent = '📝 ' + v.notes;
+        log.appendChild(noteRow);
+      }
+    });
+  }
+
+  // ---- UROLOGY QUESTIONS ----
+  var URO_TOTAL = 18;
+  function uroCheck(cb) {
+    var lbl = document.querySelector('label[for="' + cb.id + '"]');
+    if (lbl) lbl.classList.toggle('asked', cb.checked);
+    saveUroChecks();
+    updateUroProgress();
+  }
+  function saveUroChecks() {
+    var state = {};
+    for (var i = 1; i <= URO_TOTAL; i++) {
+      var cb = document.getElementById('uq' + i);
+      if (cb) state['uq' + i] = cb.checked;
+    }
+    try { localStorage.setItem('uroChecks', JSON.stringify(state)); } catch(e) {}
+  }
+  function saveUroAnswer(id, val) {
+    try { localStorage.setItem('uroAns_' + id, val); } catch(e) {}
+  }
+  function loadUroState() {
+    try {
+      var state = JSON.parse(localStorage.getItem('uroChecks') || '{}');
+      for (var i = 1; i <= URO_TOTAL; i++) {
+        var cb = document.getElementById('uq' + i);
+        if (cb && state['uq' + i]) {
+          cb.checked = true;
+          var lbl = document.querySelector('label[for="uq' + i + '"]');
+          if (lbl) lbl.classList.add('asked');
+        }
+        var ta = document.getElementById('ua' + i);
+        if (ta) {
+          var saved = localStorage.getItem('uroAns_ua' + i);
+          if (saved) ta.value = saved;
+        }
+      }
+    } catch(e) {}
+    updateUroProgress();
+  }
+  function updateUroProgress() {
+    var count = 0;
+    for (var i = 1; i <= URO_TOTAL; i++) {
+      var cb = document.getElementById('uq' + i);
+      if (cb && cb.checked) count++;
+    }
+    var el = document.getElementById('uro-progress');
+    var bar = document.getElementById('uro-progress-bar');
+    if (el) el.textContent = count + ' / ' + URO_TOTAL;
+    if (bar) bar.style.width = Math.round((count / URO_TOTAL) * 100) + '%';
+  }
+  function clearUroAnswers() {
+    if (!confirm('Clear all answers? (Checkboxes will stay)')) return;
+    for (var i = 1; i <= URO_TOTAL; i++) {
+      var ta = document.getElementById('ua' + i);
+      if (ta) { ta.value = ''; try { localStorage.removeItem('uroAns_ua' + i); } catch(e) {} }
+    }
+  }
+  function printQuestions() {
+    window.print();
+  }
+
+  // ---- INIT (runs after unlock) ----
+  function initApp() {
+    var today = new Date();
+
+    var dateEl = document.getElementById('todayDate');
+    if (dateEl) dateEl.textContent = today.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+    var vDate = document.getElementById('v-date');
+    if (vDate) vDate.valueAsDate = today;
+
+    // Countdown for May 4
+    var appt2 = new Date('2026-05-04T00:00:00');
+    var diffDays = Math.ceil((appt2 - today) / (1000 * 60 * 60 * 24));
+    var cEl = document.getElementById('countdown2');
+    if (cEl) {
+      if (diffDays > 0) cEl.textContent = '⏰ In ' + diffDays + ' day' + (diffDays > 1 ? 's' : '');
+      else if (diffDays === 0) cEl.textContent = '📍 TODAY!';
+      else cEl.textContent = '✓ Completed ' + Math.abs(diffDays) + ' days ago';
+    }
+
+    loadChecks();
+    loadNotes();
+    loadVitals();
+    loadUroState();
+  }
+
+  // ---- BOOT ----
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      if (sessionStorage.getItem('unlocked') === '1') {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        initApp();
+      }
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>
